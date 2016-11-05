@@ -57,6 +57,27 @@ int main(int argc, char **argv) {
     int quit = 0;
 
     do {
+        printf("Please log in (LOGIN <username> <password>): \n");
+        fgets(buffer, BUF, stdin);
+        strtok(buffer, "\n");
+        send(create_socket, buffer, strlen(buffer), 0); // Client sendet Login Infos
+        printf("Login-Daten an server gesendet.\n"); //debug meldung
+
+        //recv. LOGIN ok oder error:
+        size = recv(create_socket, buffer, BUF - 1, 0);
+        if(size>0) {
+            buffer[size] = '\0';
+        } else {
+            printf("error reading from server");
+            return -1;
+        }
+
+
+    } while(strcmp(buffer, "LOGIN OK") != 0);
+
+    printf("Login successful.\n");
+
+    do {
         printf("Please enter your command: \n");
         fgets(buffer, BUF, stdin);
         strtok(buffer, "\n");
@@ -123,6 +144,7 @@ int main(int argc, char **argv) {
                 send(create_socket, buffer, strlen(buffer), 0);
 
                 //Client receivt blockweise und schreibt blockweise ins file
+
                 if (filesize > 0) {
 
                     int bytesGelesen = 0;
