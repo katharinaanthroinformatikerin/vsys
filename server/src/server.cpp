@@ -187,6 +187,7 @@ int main(int argc, char **argv) {
                                 }
                             } else {
                                 printf("Username not found!\n");
+                                loginOk = -1;
                             }
                         }
 
@@ -198,7 +199,7 @@ int main(int argc, char **argv) {
                         ldap_msgfree(result);
                         free(attribs[0]);
                         free(attribs[1]);
-                        printf("LDAP search suceeded\n");
+                        printf("LDAP search finished\n");
                     }
 
 

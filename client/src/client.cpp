@@ -57,9 +57,35 @@ int main(int argc, char **argv) {
     int quit = 0;
 
     do {
-        printf("Please log in (LOGIN <username> <password>): \n");
-        fgets(buffer, BUF, stdin);
-        strtok(buffer, "\n");
+        char inputUsername[BUF] = {0};
+        char inputPassword[BUF] = {0};
+
+        char temp;
+        int pwIndex = 0;
+
+        printf("Please log in: \n");
+        printf("Username: ");
+        fgets(inputUsername, BUF, stdin);
+        strtok(inputUsername, "\n");
+
+        //system("ssty -icanon");
+        printf("\nPassword: ");
+
+
+        fgets(inputPassword, BUF, stdin);
+        //system("ssty -icanon");
+
+        strtok(inputPassword, "\n");
+        char loginString[BUF] = {0};
+        strcat(loginString, "LOGIN ");
+        strcat(loginString, inputUsername);
+        strcat(loginString, " ");
+        strcat(loginString, inputPassword);
+        printf("LoginString: %s\n", loginString);//Debugmeldung löschen!
+
+        strcpy(buffer, loginString);
+
+
         send(create_socket, buffer, strlen(buffer), 0); // Client sendet Login Infos
         printf("Login-Daten an server gesendet.\n"); //debug meldung
 
