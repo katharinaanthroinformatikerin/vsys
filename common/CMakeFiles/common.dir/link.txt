@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC  -std=c++11 -std=c++11 -g  -shared -Wl,-soname,libcommon.so -o ../lib/libcommon.so CMakeFiles/common.dir/src/common.cpp.o CMakeFiles/common.dir/src/config.cpp.o 

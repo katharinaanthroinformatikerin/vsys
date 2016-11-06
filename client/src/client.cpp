@@ -226,7 +226,7 @@ int main(int argc, char **argv) {
                     //Client receives ACK from Server
                     size = recv(csocket, buffer, BUF - 1, 0);
                     buffer[size] = '\0';
-                    
+
                     bool sendError = false;
                     //Server liest blockweise
                     while (!sendError) {

@@ -1,0 +1,3 @@
+/home/kathi/Projects/vsys/client/CMakeFiles/rebuild_cache.dir
+/home/kathi/Projects/vsys/client/CMakeFiles/edit_cache.dir
+/home/kathi/Projects/vsys/client/CMakeFiles/client.dir
