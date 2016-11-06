@@ -59,6 +59,7 @@ int main(int argc, char **argv) {
     do {
         char inputUsername[BUF] = {0};
         char inputPassword[BUF] = {0};
+        char * password;
 
         char temp;
         int pwIndex = 0;
@@ -74,6 +75,10 @@ int main(int argc, char **argv) {
 
         fgets(inputPassword, BUF, stdin);
         //system("ssty -icanon");
+        //malloc(1024*sizeof(char))
+        //password = getpass("Password: ");
+        //strcpy(inputPassword, password);
+        //free(password);
 
         strtok(inputPassword, "\n");
         char loginString[BUF] = {0};
