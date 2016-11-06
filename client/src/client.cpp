@@ -12,26 +12,22 @@
 #include <stdio.h>
 #include <string.h>
 #include <include/common.h>
-#include <cmath>
 #include <sys/stat.h>
 
 #include <string>
 
 int main(int argc, char **argv) {
-    int create_socket;
+    int csocket;
     char buffer[BUF];
     struct sockaddr_in address;
     int size;
-    // char filename[50];
-    char extractedFilename[BUF] = {0};
-
 
     if (argc < 2) {
         printf("Usage: %s ServerAdresse\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
-    if ((create_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+    if ((csocket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("Socket error");
         return EXIT_FAILURE;
     }
@@ -41,10 +37,11 @@ int main(int argc, char **argv) {
     address.sin_port = htons(PORT);
     inet_aton(argv[1], &address.sin_addr);
 
-    if (connect(create_socket, (struct sockaddr *) &address, sizeof(address)) == 0) {
+    if (connect(csocket, (struct sockaddr *) &address, sizeof(address)) == 0) {
         printf("Connection with server (%s) established\n", inet_ntoa(address.sin_addr));
-        size = recv(create_socket, buffer, BUF - 1, 0);
+        size = recv(csocket, buffer, BUF - 1, 0);
         //receivt welcome to myserver
+
         if (size > 0) {
             buffer[size] = '\0';
             printf("%s", buffer);
@@ -59,50 +56,35 @@ int main(int argc, char **argv) {
     do {
         char inputUsername[BUF] = {0};
         char inputPassword[BUF] = {0};
-        char * password;
-
-        char temp;
-        int pwIndex = 0;
 
         printf("Please log in: \n");
+
         printf("Username: ");
         fgets(inputUsername, BUF, stdin);
         strtok(inputUsername, "\n");
 
-        //system("ssty -icanon");
         printf("\nPassword: ");
-
-
         fgets(inputPassword, BUF, stdin);
-        //system("ssty -icanon");
-        //malloc(1024*sizeof(char))
-        //password = getpass("Password: ");
-        //strcpy(inputPassword, password);
-        //free(password);
-
         strtok(inputPassword, "\n");
+
         char loginString[BUF] = {0};
         strcat(loginString, "LOGIN ");
         strcat(loginString, inputUsername);
         strcat(loginString, " ");
         strcat(loginString, inputPassword);
-        printf("LoginString: %s\n", loginString);//Debugmeldung löschen!
 
         strcpy(buffer, loginString);
 
-
-        send(create_socket, buffer, strlen(buffer), 0); // Client sendet Login Infos
-        printf("Login-Daten an server gesendet.\n"); //debug meldung
+        send(csocket, buffer, strlen(buffer), 0); // Client sendet Login Infos
 
         //recv. LOGIN ok oder error:
-        size = recv(create_socket, buffer, BUF - 1, 0);
+        size = recv(csocket, buffer, BUF - 1, 0);
         if(size>0) {
             buffer[size] = '\0';
         } else {
             printf("error reading from server");
             return -1;
         }
-
 
     } while(strcmp(buffer, "LOGIN OK") != 0);
 
@@ -112,29 +94,28 @@ int main(int argc, char **argv) {
         printf("Please enter your command: \n");
         fgets(buffer, BUF, stdin);
         strtok(buffer, "\n");
-        send(create_socket, buffer, strlen(buffer), 0); // Client sendet den Befehl
-        printf("Command an server gesendet.\n"); //debug meldung
+        send(csocket, buffer, strlen(buffer), 0); // Client sendet den Befehl
 
         char sendCommand[BUF];
         strcpy(sendCommand, buffer);
 
         if (size > 0) {
             buffer[size] = '\0';
-            printf("Command: %s\n", buffer);
+
             if (strncmp(sendCommand, "LIST", 4) == 0) {
-                size = recv(create_socket, buffer, BUF - 1, 0);
+                size = recv(csocket, buffer, BUF - 1, 0);
                 buffer[size] = '\0';
 
                 int numberOfEntries = atoi(buffer);
-                printf("Zahl der Einträge %d\n", numberOfEntries);
-                printf("VZ Inhalt Start:\n");
+                printf("Number of directory entries: %d\n", numberOfEntries);
+                printf("Contents:\n");
                 for (int j = 0; j < numberOfEntries; j++) {
-                    size = recv(create_socket, buffer, BUF - 1, 0);
+                    size = recv(csocket, buffer, BUF - 1, 0);
                     if (size > 0) {
                         printf("%s\n", buffer);
                     }
                 }
-                printf("VZ Inhalt Ende\n");
+                printf("Finished.\n");
 
 
             } else if (strncmp(sendCommand, "GET", 3) == 0 && strlen(sendCommand) > 4) {
@@ -148,25 +129,17 @@ int main(int argc, char **argv) {
                 if (pSlash != nullptr) {
                     *pSlash = '\0';
                     char *partFilename = strdup(pSlash + 1);
-                    printf("partFilname: %s\n", partFilename);
                     strcpy(filename, partFilename);
                 }
 
-                //size = recv(create_socket, buffer, BUF - 1, 0);
-                //buffer[size] = '\0';
-                //printf("ACK vom Server, dass GET gestartet: %s", buffer)
-
-                //Receivt ACK oder ERR:
-                size = recv(create_socket, buffer, BUF - 1, 0);
+                //Receivt ACK oder ERR, je nachdem, ob Datei am Server geöffnet werden konnte oder nicht:
+                size = recv(csocket, buffer, BUF - 1, 0);
                 buffer[size] = '\0';
 
                 if (strncmp(buffer, "ERR", 3) == 0) {
                     printf("%s", buffer);
                 } else {
-
-                    //printf("Receivt datei am server geöffnet: %s\n", buffer);
-
-
+                    //Wenn Datei am server geöffnet:
 
                     FILE *file = fopen(filename, "wb");
                     if (file == NULL) {
@@ -174,39 +147,30 @@ int main(int argc, char **argv) {
                         continue;
                     }
 
-                    //Erhalt der filesize
-                    size = recv(create_socket, buffer, BUF - 1, 0);
+                    //Erhalt der filesize vom Server
+                    size = recv(csocket, buffer, BUF - 1, 0);
                     buffer[size] = '\0';
-                    printf("receivt filesize vom server: %s\n", buffer);
                     int filesize = atoi(buffer);
 
-                    strcpy(buffer, "Filesize erhalten, Datentransfer kann beginnen.\n");
-                    send(create_socket, buffer, strlen(buffer), 0);
-
                     //Client receivt blockweise und schreibt blockweise ins file
-
                     if (filesize > 0) {
 
                         int bytesGelesen = 0;
-                        float progress = 0;
-                        float filesizeprogress = filesize;
-                        float percent = 0;
 
                         while (bytesGelesen < filesize) {
                             //printf("in receiveschleife.\n");
 
                             // receiving the actual file contents
-                            size = recv(create_socket, buffer, BUF - 1, 0);
+                            size = recv(csocket, buffer, BUF - 1, 0);
 
                             bytesGelesen += size;
                             //printf("Bytes received: %d\n", size);
-                            // printf("\r");
                             printf("Fortschrott: %d%%\r", bytesGelesen * 100 / filesize);
                             fflush(stdout);
 
                             if (size > 0) {
                                 buffer[size] = '\0';
-                                //printf("bufferinhalt: %s\n", buffer);
+
                                 int bytesWrite = fwrite(buffer, sizeof(char), size, file);
 
                                 if (bytesWrite > 0) {
@@ -233,124 +197,65 @@ int main(int argc, char **argv) {
             } else if (strncmp(sendCommand, "PUT", 3) == 0 && strlen(sendCommand) > 4) {
                 char filedirectory[BUF] = {0};
 
-                size = recv(create_socket, buffer, BUF - 1, 0);
-                buffer[size] = '\0';
-                printf("ACK vom Server, dass PUT gestartet: %s", buffer);//receiven des ACKs vom Server
+                strcpy(filedirectory, sendCommand + 4);
 
-                strcpy(filedirectory, sendCommand+4);
+                printf("filedirectory: %s\n", filedirectory);
 
-                //printf("Bitte geben Sie den Verzeichnispfad und Dateinamen der zu übertragenden Datei an:\n");
-                //fgets(buffer, BUF, stdin);
-                //Um das \n aus der stdin Eingabe rauszukriegen, überschreibe ich es mit \0.
-                //strtok(buffer, "\n");
-                //strcpy(filedirectory, buffer);
-
-                //markiert letzten /, um filename zu extrahieren
-                //wenn zum put der gesamte dateipfad zum file eingegeben wird, muss ich dateinamen extrahieren:
-                /*for (int i = strlen(buffer) - 1; i >= 0; i--) {
-                    if (buffer[i] == '/') {
-                        int l = 0;
-                        for (int k = i + 1; k < strlen(buffer); k++) {
-                            extractedFilename[l] = buffer[k];
-                            l++;
-                        }
-                        extractedFilename[l] = '\0';
-                        break;
-                    }
-                }
-                strcpy(buffer, extractedFilename);
-                send(create_socket, buffer, strlen(buffer), 0);
-                printf("Der extracted Filename auf Clientseite nach dem Schicken: %s\n", extractedFilename);
-                */
-
-                //printf("Geben Sie den Pfad und dateinamen ein: \n");
-                //fgets(buffer, BUF, stdin);
-                //strtok(buffer, "\n");
-                //std::string fname(buffer);
-                //sendet Pfad der zu übermittelnden Datei
-                //
-                //send(create_socket, buffer, strlen(buffer), 0); // 5. S - Dateipfad senden
-
-                //printf("Ausgabe Bufferinhalt der pfad sein sollt: %s\n", buffer);
-                //sendet jetzt nur, damits mitn receiven übereinstimmt.
-
-
-                /*
-                char directory[] = "/home/katharina/";
-                printf("Ausgabe des filenamens %s", filename);
-                //strlen(directory) + strlen (filename) + 1
-                char filedirectory[BUF] = {0};
-                strcat(filedirectory, directory);
-                strcat(filedirectory, filename);
-                */
-
-
-                //receive the server's ready
-                size = recv(create_socket, buffer, BUF - 1, 0);
-                printf("Receivt datei am server geöffnet: %s\n", buffer);
-
-
-                printf("Ausgabe dateipfad vor öffnen: %s\n", filedirectory);
                 FILE *file = fopen(filedirectory, "rb");
                 if (file == NULL) {
                     printf("Error opening file.\n");
-                } else {
-                    printf("file opened.\n");
+                    strcpy(buffer, "ERR Error opening file.");
+                    send(csocket, buffer, strlen(buffer), 0);
 
-                    //fseek(file, 0L, SEEK_END);
+                } else {
+                    // file konnte geoeffnet werden, also senden
+                    strcpy(buffer, "ACK File opened.");
+                    send(csocket, buffer, strlen(buffer), 0);
+
                     struct stat finfo;
                     stat(filedirectory, &finfo);
                     int fileSize = finfo.st_size;
 
-                    printf("filesize %d\n", fileSize);
+                    printf("File opened, sending %d bytes.\n", fileSize);
 
+                    // Dateigröße senden
                     sprintf(buffer, "%d", fileSize);
-                    //Dateigröße senden
-                    printf("Dateigröße im buffer vor dem senden zum Server: %s\n", buffer);
-                    send(create_socket, buffer, strlen(buffer), 0);
-
-                    //receiven Dateigroesse erhalten
-                    size = recv(create_socket, buffer, BUF - 1, 0);
-                    printf("receiven des ok vom server, dass er Dateigrösse erhalten hat: %s\n", buffer);
-
-                    //rewind(file);
+                    send(csocket, buffer, strlen(buffer), 0);
 
                     while (1) {
-                        size_t bytesRead = fread(buffer, sizeof(char), BUF - 1, file);
+                        size_t bytesRead = fread(buffer, sizeof(char), BUF, file);
 
                         if (bytesRead > 0) {
-
-                            printf("%d bytes gelesen\n", bytesRead);
                             int bytesGesendet = 0;
 
                             while (bytesGesendet < bytesRead) {
-
-                                bytesGesendet += send(create_socket, buffer, bytesRead, 0);
-
-                                printf("bytesGesendet... %d\n", bytesGesendet);
+                                bytesGesendet += send(csocket, buffer, bytesRead, 0);
+                                printf("%d bytes sent\n", bytesGesendet);
                             }
 
-
                         } else {
-                            printf("Konnte nicht mehr lesen.\n");
+                            printf("Finished reading.\n");
                             break;
                         }
-
                     }
-                    printf("Schließe file. \n");
-                    memset(&buffer, 0, sizeof(buffer));
+
+                    printf("Closing file. \n");
+                    // memset(&buffer, 0, sizeof(buffer));
                     fclose(file);
                 }
+
             } else if (strncmp(sendCommand, "QUIT", 4) == 0) {
                 quit = 1;
-            }else {
-                size = recv(create_socket, buffer, BUF - 1, 0);
-                printf("Sollte unknown conmmand vom server receiven: %s", buffer);
+
+            } else {
+                //Im Falle eines unknown commands:
+                size = recv(csocket, buffer, BUF - 1, 0);
+                printf("%s", buffer);
             }
         }
 
     } while (quit != 1);
     printf("bye!");
-    close(create_socket);
+    close(csocket);
     return EXIT_SUCCESS;
 }
