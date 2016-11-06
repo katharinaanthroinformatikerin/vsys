@@ -1,2 +1,5 @@
 .idea/workspace.xml
+*.o
+vsys-server
+vsys-client
 
