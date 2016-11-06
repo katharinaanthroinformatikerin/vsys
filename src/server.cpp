@@ -13,14 +13,12 @@
 #include <string.h>
 #include <string>
 #include <dirent.h>
-#include <include/common.h>
-#include <include/config.h>
 #include <sys/stat.h>
-#include "../include/get.h"
-#include "../include/list.h"
-#include "../include/put.h"
 #include <cmath>
 #include <ldap.h>
+
+#define BUF 1024
+#define PORT 6543
 
 #define DIRARRSIZE 1000
 #define LDAP_HOST "ldap.technikum-wien.at"
@@ -262,6 +260,7 @@ int main(int argc, char **argv) {
 
                         strcpy(filedirectory, buffer + 4);
 
+                        /*
                         char *partDirectory = (char *) malloc(strlen(filedirectory));
                         strcpy(partDirectory, filedirectory);
                         char *pSlash = strrchr(partDirectory, '/');
@@ -270,6 +269,7 @@ int main(int argc, char **argv) {
                             char *partFilename = strdup(pSlash + 1);
                             strcpy(filedirectory, partFilename);
                         }
+                         */
 
                         FILE *file = fopen(filedirectory, "rb");
                         if (file == NULL) {

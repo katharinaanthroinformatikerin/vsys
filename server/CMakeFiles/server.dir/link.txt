@@ -1,1 +1,0 @@
-/usr/bin/c++    -std=c++11 -std=c++11 -DLDAP_DEPRECATED -g   -lldap -llber CMakeFiles/server.dir/src/get.cpp.o CMakeFiles/server.dir/src/list.cpp.o CMakeFiles/server.dir/src/server.cpp.o  -o ../bin/server -rdynamic ../lib/libcommon.so -lldap -llber -Wl,-rpath,/home/kathi/Projects/vsys/lib 

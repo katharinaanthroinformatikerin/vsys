@@ -11,10 +11,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <include/common.h>
 #include <sys/stat.h>
 
 #include <string>
+
+#define BUF 1024
+#define PORT 6543
 
 int main(int argc, char **argv) {
     int csocket;
@@ -123,14 +125,17 @@ int main(int argc, char **argv) {
                 char filename[BUF] = {0};
                 strcpy(filename, sendCommand + 4);
 
+                /*
                 char *partDirectory = (char *) malloc(strlen(filename));
                 strcpy(partDirectory, filename);
                 char *pSlash = strrchr(partDirectory, '/');
-                if (pSlash != nullptr) {
+
+                if (pSlash != NULL) {
                     *pSlash = '\0';
                     char *partFilename = strdup(pSlash + 1);
                     strcpy(filename, partFilename);
                 }
+                 */
 
                 //Receivt ACK oder ERR, je nachdem, ob Datei am Server geöffnet werden konnte oder nicht:
                 size = recv(csocket, buffer, BUF - 1, 0);

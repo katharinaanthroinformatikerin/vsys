@@ -1,1 +1,0 @@
-/usr/bin/c++    -std=c++11 -std=c++11 -g   CMakeFiles/client.dir/src/client.cpp.o  -o ../bin/client -rdynamic ../lib/libcommon.so -Wl,-rpath,/home/kathi/Projects/vsys/lib 
