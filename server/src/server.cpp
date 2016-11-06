@@ -290,8 +290,8 @@ int main(int argc, char **argv) {
                         strcpy(filedirectory, buffer + 4);
                         printf("filedirectory: %s\n", filedirectory);
 
-                        strcpy(buffer, "ACK: GET wurde gestartet\n");
-                        send(new_socket, buffer, BUF - 1, 0);
+                        //strcpy(buffer, "ACK: GET wurde gestartet\n");
+                        //send(new_socket, buffer, BUF - 1, 0);
                         printf("ACK: %s wurde gestartet\n", buffer);
 
                         char *partDirectory = (char *) malloc(strlen(filedirectory));
@@ -308,9 +308,12 @@ int main(int argc, char **argv) {
                         FILE *file = fopen(filedirectory, "rb");
                         if (file == NULL) {
                             printf("Error opening file\n");
+                            strcpy(buffer,"ERR Error opening file.\n" );
+                            send(new_socket, buffer, BUF - 1, 0);
+
                         } else {
 
-                            strcpy(buffer, "Die Datei wurde am Server geöffnet.\n");
+                            strcpy(buffer, "ACK Die Datei wurde am Server geöffnet.\n");
                             send(new_socket, buffer, BUF - 1, 0);
 
                             struct stat finfo;
@@ -361,12 +364,13 @@ int main(int argc, char **argv) {
                                     break;
                                 }
                             }
+
+                            fclose(file);
+                            printf("File closed.\n");
                         }
 
-                        fclose(file);
-                        printf("File closed.\n");
 
-                    } else if (strncmp(buffer, "PUT", 3) == 0) {
+                    } else if (strncmp(buffer, "PUT", 3) == 0 && strlen(buffer) > 4) {
                         //bspw PUT clientfile.txt
                         char sendCommand[BUF];
 

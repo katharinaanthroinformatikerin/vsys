@@ -137,83 +137,93 @@ int main(int argc, char **argv) {
                 char filename[BUF] = {0};
                 strcpy(filename, sendCommand + 4);
 
-                char * partDirectory = (char *) malloc (strlen(filename));
+                char *partDirectory = (char *) malloc(strlen(filename));
                 strcpy(partDirectory, filename);
-                char * pSlash = strrchr(partDirectory, '/');
-                if(pSlash != nullptr) {
+                char *pSlash = strrchr(partDirectory, '/');
+                if (pSlash != nullptr) {
                     *pSlash = '\0';
                     char *partFilename = strdup(pSlash + 1);
                     printf("partFilname: %s\n", partFilename);
                     strcpy(filename, partFilename);
                 }
 
+                //size = recv(create_socket, buffer, BUF - 1, 0);
+                //buffer[size] = '\0';
+                //printf("ACK vom Server, dass GET gestartet: %s", buffer)
+
+                //Receivt ACK oder ERR:
                 size = recv(create_socket, buffer, BUF - 1, 0);
                 buffer[size] = '\0';
-                printf("ACK vom Server, dass GET gestartet: %s", buffer);
 
-                size = recv(create_socket, buffer, BUF - 1, 0);
-                buffer[size] = '\0';
-                printf("Receivt datei am server geöffnet: %s\n", buffer);
+                if (strncmp(buffer, "ERR", 3) == 0) {
+                    printf("%s", buffer);
+                } else {
 
-                FILE *file = fopen(filename, "wb");
-                if (file == NULL) {
-                    printf("Error opening file.\n");
-                }
+                    //printf("Receivt datei am server geöffnet: %s\n", buffer);
 
-                //Erhalt der filesize
-                size = recv(create_socket, buffer, BUF - 1, 0);
-                buffer[size] = '\0';
-                printf("receivt filesize vom server: %s\n", buffer);
-                int filesize = atoi(buffer);
 
-                strcpy(buffer, "Filesize erhalten, Datentransfer kann beginnen.\n");
-                send(create_socket, buffer, strlen(buffer), 0);
 
-                //Client receivt blockweise und schreibt blockweise ins file
-
-                if (filesize > 0) {
-
-                    int bytesGelesen = 0;
-                    float progress = 0;
-                    float filesizeprogress = filesize;
-                    float percent = 0;
-
-                    while (bytesGelesen < filesize) {
-                        //printf("in receiveschleife.\n");
-
-                        // receiving the actual file contents
-                        size = recv(create_socket, buffer, BUF - 1, 0);
-
-                        bytesGelesen += size;
-                        //printf("Bytes received: %d\n", size);
-                        // printf("\r");
-                        printf("Fortschrott: %d%%\r", bytesGelesen*100/filesize);
-                        fflush(stdout);
-
-                        if (size > 0) {
-                            buffer[size] = '\0';
-                            //printf("bufferinhalt: %s\n", buffer);
-                            int bytesWrite = fwrite(buffer, sizeof(char), size, file);
-
-                            if (bytesWrite > 0) {
-                                //printf("%d bytes geschrieben\n", bytesWrite);
-
-                            } else {
-                                printf("Konnte nicht schreiben.\n");
-                            }
-                        } else {
-                            printf("error receiving\n");
-                            break;
-                        }
-
+                    FILE *file = fopen(filename, "wb");
+                    if (file == NULL) {
+                        printf("Error opening file.\n");
+                        continue;
                     }
 
-                    printf("\nget done.\n");
-                } else {
-                    printf("Error receiving size\n");
+                    //Erhalt der filesize
+                    size = recv(create_socket, buffer, BUF - 1, 0);
+                    buffer[size] = '\0';
+                    printf("receivt filesize vom server: %s\n", buffer);
+                    int filesize = atoi(buffer);
+
+                    strcpy(buffer, "Filesize erhalten, Datentransfer kann beginnen.\n");
+                    send(create_socket, buffer, strlen(buffer), 0);
+
+                    //Client receivt blockweise und schreibt blockweise ins file
+
+                    if (filesize > 0) {
+
+                        int bytesGelesen = 0;
+                        float progress = 0;
+                        float filesizeprogress = filesize;
+                        float percent = 0;
+
+                        while (bytesGelesen < filesize) {
+                            //printf("in receiveschleife.\n");
+
+                            // receiving the actual file contents
+                            size = recv(create_socket, buffer, BUF - 1, 0);
+
+                            bytesGelesen += size;
+                            //printf("Bytes received: %d\n", size);
+                            // printf("\r");
+                            printf("Fortschrott: %d%%\r", bytesGelesen * 100 / filesize);
+                            fflush(stdout);
+
+                            if (size > 0) {
+                                buffer[size] = '\0';
+                                //printf("bufferinhalt: %s\n", buffer);
+                                int bytesWrite = fwrite(buffer, sizeof(char), size, file);
+
+                                if (bytesWrite > 0) {
+                                    //printf("%d bytes geschrieben\n", bytesWrite);
+
+                                } else {
+                                    printf("Konnte nicht schreiben.\n");
+                                }
+                            } else {
+                                printf("error receiving\n");
+                                break;
+                            }
+
+                        }
+
+                        printf("\nget done.\n");
+                    } else {
+                        printf("Error receiving size\n");
+                    }
+                    fclose(file);
+                    printf("File closed.\n");
                 }
-                fclose(file);
-                printf("File closed.\n");
 
             } else if (strncmp(sendCommand, "PUT", 3) == 0 && strlen(sendCommand) > 4) {
                 char filedirectory[BUF] = {0};
