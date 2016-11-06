@@ -195,6 +195,73 @@ int main(int argc, char **argv) {
                 }
 
             } else if (strncmp(sendCommand, "PUT", 3) == 0 && strlen(sendCommand) > 4) {
+
+                char filedirectory[BUF] = {0};
+
+                strcpy(filedirectory, sendCommand + 4);
+
+                printf("filedirectory: %s\n", filedirectory);
+
+                FILE *file = fopen(filedirectory, "rb");
+                if (file == NULL) {
+                    printf("Error opening file.\n");
+                    strcpy(buffer, "ERR Error opening file.");
+                    send(csocket, buffer, strlen(buffer), 0);
+
+                } else {
+                    // file konnte geoeffnet werden, also senden
+                    strcpy(buffer, "ACK File opened.");
+                    send(csocket, buffer, strlen(buffer), 0);
+
+                    struct stat finfo;
+                    stat(filedirectory, &finfo);
+                    int fileSize = finfo.st_size;
+
+                    printf("File opened, sending %d bytes.\n", fileSize);
+
+                    // Dateigröße senden
+                    sprintf(buffer, "%d", fileSize);
+                    send(csocket, buffer, strlen(buffer), 0);
+
+                    //Client receives ACK from Server
+                    size = recv(csocket, buffer, BUF - 1, 0);
+                    buffer[size] = '\0';
+                    
+                    bool sendError = false;
+                    //Server liest blockweise
+                    while (!sendError) {
+                        size_t bytesRead = fread(buffer, sizeof(char), BUF - 1, file);
+                        buffer[bytesRead] = '\0';
+
+                        if (bytesRead > 0) {
+
+                            //printf("%d bytes gelesen\n", bytesRead);
+                            int bytesGesendet = 0;
+
+                            while (bytesGesendet < bytesRead) {
+
+                                bytesGesendet += send(csocket, buffer, bytesRead, 0);
+                                //printf("bytesGesendet... %d\n", bytesGesendet);
+
+                                if (bytesGesendet == -1) {
+                                    printf("Couldn't send...\n");
+                                    sendError = true;
+                                    break;
+                                }
+
+                                //usleep(1 * 1000); // 50 ms
+                            }
+
+                        } else {
+                            printf("Finished reading.\n");
+                            break;
+                        }
+                    }
+                    fclose(file);
+                    printf("File closed.\n");
+                }
+
+                /* anfang put alt
                 char filedirectory[BUF] = {0};
 
                 strcpy(filedirectory, sendCommand + 4);
@@ -240,9 +307,10 @@ int main(int argc, char **argv) {
                     }
 
                     printf("Closing file. \n");
-                    // memset(&buffer, 0, sizeof(buffer));
+                    memset(&buffer, 0, sizeof(buffer));
                     fclose(file);
                 }
+                ende put*/
 
             } else if (strncmp(sendCommand, "QUIT", 4) == 0) {
                 quit = 1;

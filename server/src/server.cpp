@@ -329,6 +329,80 @@ int main(int argc, char **argv) {
 
 
                     } else if (strncmp(buffer, "PUT", 3) == 0 && strlen(buffer) > 4) {
+                        char sendCommand[BUF];
+                        char filename[BUF] = {0};
+                        strcpy(filename, buffer + 4);
+
+                        printf("received PUT for file \"%s\"\n", filename);
+
+                        size = recv(new_socket, buffer, BUF - 1, 0);
+                        buffer[size] = '\0';
+
+                        if (strncmp(buffer, "ERR", 3) == 0) {
+                            printf("%s", buffer);
+                        } else {
+                            //Wenn Datei am client geöffnet:
+                            FILE *file = fopen(filename, "wb");
+                            if (file == NULL) {
+                                printf("Error opening file\n");
+                            } else {
+
+                                printf("File am Server geöffnet.\n");//debug
+
+                                //Erhalt der filesize
+                                size = recv(new_socket, buffer, BUF - 1, 0);
+                                buffer[size] = '\0';
+
+                                //Wandelt Größe als String in Größe als int um
+                                int filesize = atoi(buffer);
+
+                                printf("client says they be sending %d bytes.\n", filesize);
+
+                                //Client receivt blockweise und schreibt blockweise ins file
+                                if (filesize > 0) {
+
+                                    int bytesGelesen = 0;
+
+                                    strcpy(buffer, "ACK Server ready to receive.\n");
+                                    send(new_socket, buffer, BUF - 1, 0);
+
+                                    while (bytesGelesen < filesize) {
+
+                                        // receiving the actual file contents
+                                        size = recv(new_socket, buffer, BUF - 1, 0);
+
+                                        bytesGelesen += size;
+
+                                        if (size > 0) {
+                                            buffer[size] = '\0';
+
+                                            int bytesWrite = fwrite(buffer, sizeof(char), size, file);
+
+                                            if (bytesWrite > 0) {
+                                                //printf("%d bytes geschrieben\n", bytesWrite);
+
+                                            } else {
+                                                printf("Konnte nicht schreiben.\n");
+                                            }
+                                        } else {
+                                            printf("error receiving\n");
+                                            break;
+                                        }
+
+                                    }
+
+                                    printf("\nput done.\n");
+                                }
+                                fclose(file);
+                                printf("File closed.\n");
+                            }
+
+
+                        }
+
+
+                        /*hier beginnt put alt
+
 
                         char sendCommand[BUF];
                         char filename[BUF] = {0};
@@ -397,10 +471,14 @@ int main(int argc, char **argv) {
                                 fclose(file);
                                 printf("File closed.\n");
                             }
+
                         } else {
                             printf("Error receiving name.\n");
                         }
 
+
+                    hier endet put
+                    */
                     } else if (strncmp(buffer, "QUIT", 4) == 0) {
                         //damit nicht nochmal unkown command hingeschrieben wird, while-Schleife (unten) beendet das Ganze
                     } else {
