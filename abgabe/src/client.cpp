@@ -12,27 +12,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <termios.h>
+
 #include <string>
 
 #define BUF 1024
-
-// implementation for getch(), which was not available
-// for masking the input of password
-// reads one char after another and there is no echo
-int mygetch( )
-{
-    struct termios oldt, newt;
-    int ch;
-
-    tcgetattr( STDIN_FILENO, &oldt );
-    newt = oldt;
-    newt.c_lflag &= ~( ICANON | ECHO );
-    tcsetattr( STDIN_FILENO, TCSANOW, &newt );
-    ch = getchar();
-    tcsetattr( STDIN_FILENO, TCSANOW, &oldt );
-    return ch;
-}
 
 
 int main(int argc, char **argv) {
@@ -83,23 +66,9 @@ int main(int argc, char **argv) {
         strtok(inputUsername, "\n");
 
         printf("\nPassword: ");
-        //fgets(inputPassword, BUF, stdin);
-        //strtok(inputPassword, "\n");
-        char c;
-        int p=0;
-        // masking input for password
-        do
-        {
-            c = mygetch();
-            if(c != '\n')
-            {
-                inputPassword[p]=c;
-                p++;
-                putchar('*');
-            }
-        } while(c != '\n');
+        fgets(inputPassword, BUF, stdin);
         strtok(inputPassword, "\n");
-        printf("\n");
+
         char loginString[BUF] = {0};
         strcat(loginString, "LOGIN ");
         strcat(loginString, inputUsername);
@@ -418,5 +387,3 @@ int main(int argc, char **argv) {
     close(csocket);
     return EXIT_SUCCESS;
 }
-
-
