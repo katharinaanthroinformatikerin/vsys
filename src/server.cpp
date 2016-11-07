@@ -335,6 +335,112 @@ int main(int argc, char **argv) {
 
 
                     } else if (strncmp(buffer, "PUT", 3) == 0 && strlen(buffer) > 4) {
+
+                        char sendCommand[BUF];
+
+                        char filename[BUF] = {0};
+                        strcpy(filename, buffer + 4);
+
+
+                        strcpy(buffer, "ACK: PUT wurde gestartet\n");
+                        send(new_socket, buffer, BUF - 1, 0);
+                        printf("ACK: PUT wurde gestartet %s.\n", filename);
+                        /*if (strlen(sendCommand) > 4) {
+                            for (int i = 0; i < strlen(sendCommand)-4; i++) {
+                                filename[i] = sendCommand[i+4];
+                            }
+                            filename[strlen(sendCommand) - 5] = '\0';
+                        }*/
+                        /*
+                        // Das Downloadverzeichnis des aktuellen Users wird automatisch gesucht und festgelegt
+                        auto con = new config();
+
+                        //size = recv(new_socket, buffer, BUF - 1, 0);//receivt filenamen
+                        //buffer[size]='\0';
+                        strcpy(filename, sendCommand);
+
+
+                        printf("Ausgabe des filenamens %s\n", filename);
+                        //strlen(directory) + strlen (filename) + 1
+                        char filedirectory[BUF] = {0};
+                        strcat(filedirectory, con->getDownloadDir().c_str());
+                        strcat(filedirectory, "/");
+                        strcat(filedirectory, filename);
+                        */
+
+                        printf("nach Zusammensetzen dir und filename steht im filedirectory: %s\n",
+                               filename);//Debugging
+
+                        if (strlen(filename) > 0) {
+                            //buffer[size] = '\0';
+                            //strtok(buffer, "\n");
+                            //printf("im buffer steht name: %s\n", buffer);
+                            //std::string oName(buffer);
+                            //std::string fname = oName + "_new";
+
+                            FILE *file = fopen(filename, "wb");
+                            if (file == NULL) {
+                                printf("Error opening file\n");
+                            }
+
+                            strcpy(buffer, "Die Datei wurde am Server geöffnet.\n");
+                            send(new_socket, buffer, BUF - 1, 0);
+
+
+                            // receiving the file size in bytes
+                            //size = recv(new_socket, buffer, BUF - 1, 0); // 8.R
+                            //printf("receivt filesize in bytes %d\n", buffer);
+
+                            //Erhalt der filesize
+                            size = recv(new_socket, buffer, BUF - 1, 0);
+                            buffer[size] = '\0';
+                            printf("receivt filesize vom client: %s\n", buffer);
+                            //Wandelt Größe als String in Größe als int um
+                            int filesize = atoi(buffer);
+
+                            strcpy(buffer, "Filesize erhalten, Datentransfer kann beginnen.\n");
+                            send(new_socket, buffer, BUF - 1, 0);
+
+
+                            if (filesize > 0) {
+
+                                int bytesGelesen = 0;
+
+                                while (bytesGelesen < filesize) {
+                                    printf("in receiveschleife.\n");
+
+                                    // receiving the actual file contents
+                                    size = recv(new_socket, buffer, BUF - 1, 0);
+                                    bytesGelesen += size;
+                                    printf("Bytes received: %d\n", size);
+                                    if (size > 0) {
+                                        //buffer[size] = '\0';
+                                        //printf("bufferinhalt: %s\n", buffer);
+                                        int bytesWrite = fwrite(buffer, sizeof(char), size, file);
+
+                                        if (bytesWrite > 0) {
+                                            printf("%d bytes geschrieben\n", bytesWrite);
+                                        } else {
+                                            printf("Konnte nicht schreiben.\n");
+                                        }
+                                    } else {
+                                        printf("error receiving\n");
+                                        break;
+                                    }
+                                }
+
+                                printf("put done.\n");
+                            } else {
+                                printf("Error receiving size\n");
+                            }
+                            fclose(file);
+                            printf("File closed.\n");
+
+                        } else {
+                            printf("Error receiving name.\n");
+                        }
+
+                        /*
                         char sendCommand[BUF];
                         char filename[BUF] = {0};
                         strcpy(filename, buffer + 4);
@@ -405,7 +511,7 @@ int main(int argc, char **argv) {
 
 
                         }
-
+                        */
 
                         /*hier beginnt put alt
 
