@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     addrlen = sizeof(struct sockaddr_in);
 
     //pid_t pid;
-    //while(pid != 0)
+    //while(pid != 0); wenn es kindprozess ist, is es null, er soll nicht in diese schleife
 
     while (1) {
         printf("Waiting for connections...\n");
@@ -64,14 +64,14 @@ int main(int argc, char **argv) {
             strcpy(buffer, "Welcome to myserver. ");
             send(new_socket, buffer, strlen(buffer), 0);
 
-            //fork() und hier die while-Schleife schließen }. der kindprozess geht dann nicht in die while-Schleife;
-        }
+            //pid =fork() und hier die while-Schleife schließen }. der kindprozess geht dann nicht in die while-Schleife;
+        } //hier gehört noch eine klammer zu (die von unten rauf, damit die funktionen ausserhalb der connectionschleife sind.)
 
         int loginOk = 0;
         int loginTries = 0;
         do {
 
-            //receives login-information:
+            //receives login-information
             size = recv(new_socket, buffer, BUF - 1, 0);
 
             if (size > 0) {
