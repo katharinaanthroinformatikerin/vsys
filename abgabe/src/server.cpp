@@ -1,5 +1,6 @@
 //
-// Created by johann on 30.09.16.
+// Created by Katharina Schallerl, if15b054
+// on 30.09.16.
 //
 
 /* server.c */
@@ -78,6 +79,7 @@ int main(int argc, char **argv) {
                 close(new_socket);
                 exit(EXIT_FAILURE);
             } else if(pid == 0) {//childprocess == 0, just give a debug message
+                close(create_socket);
                 printf("childprocess, handle connections\n");
             } else {
                 printf("parentprocess continued\n"); //parentprocess pid!=0 close new_socket, it is owned by childprocess
@@ -211,7 +213,6 @@ int main(int argc, char **argv) {
                         printf("LDAP search finished\n");
                         //ev. ldap_unbind(ld) statt weiter oben.
                     }
-
 
                 } else {
                     loginOk = -1;
@@ -443,8 +444,12 @@ int main(int argc, char **argv) {
             close(new_socket);
         } else {
             printf("Too many failed logins. Bye.\n");
+            close(create_socket);
+            close(new_socket);
+            break;
         }
-    }
-    close(create_socket);
+
+    } //end of while(1)
+
     return EXIT_SUCCESS;
 }

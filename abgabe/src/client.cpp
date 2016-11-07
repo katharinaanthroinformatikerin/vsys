@@ -1,5 +1,6 @@
 //
-// Created by kathi on 30.09.16.
+// Created by Katharina Schallerl, if15b054
+// on 30.09.16.
 //
 
 /* client.c */

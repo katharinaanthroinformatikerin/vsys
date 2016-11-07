@@ -1,5 +1,6 @@
 //
-// Created by johann on 30.09.16.
+// Created by Katharina Schallerl, if15b054
+// on 30.09.16.
 //
 
 /* server.c */
@@ -194,7 +195,7 @@ int main(int argc, char **argv) {
                                         printf("LDAP Authentication failed!\n");
                                     } else {
                                         printf("User %s login ok.\n", username);
-
+                                        loginOk = 0;
                                     }
                                     ldap_unbind(ld);
                                     ldap_memfree(dn);
@@ -213,7 +214,6 @@ int main(int argc, char **argv) {
                         //ev. ldap_unbind(ld) statt weiter oben.
                     }
 
-
                 } else {
                     loginOk = -1;
                     printf("LOGIN incorrect (wrong command, no username and/or pw, not enough whitespaces).\n");
@@ -222,7 +222,7 @@ int main(int argc, char **argv) {
                 loginOk = -1;
                 printf("No input.\n");
             }
-
+            printf("loginOk: %d\n", loginOk);
             if (loginOk == 0){
                 strcpy(buffer, "LOGIN OK");
             } else {
@@ -234,6 +234,7 @@ int main(int argc, char **argv) {
                 }
             }
             send(new_socket, buffer, strlen(buffer), 0);
+
         } while (strcmp(buffer, "LOGIN OK") != 0);
 
         if (loginOk == 0) {
@@ -260,9 +261,23 @@ int main(int argc, char **argv) {
                         int i = 0;
 
                         while ((pDirent = readdir(pDir)) != NULL) {
-                            printf("[%s]\n", pDirent->d_name);
-                            strcpy(dirArray[i], pDirent->d_name);
-                            i++;
+                            if(strcmp(pDirent->d_name, ".")!=0 && strcmp(pDirent->d_name, "..")!=0) {
+                                printf("[%s]\n", pDirent->d_name);
+                                struct stat fileInfo; //struct to hold fileinfo
+                                char filePath[BUF] = {0}; //full path to file
+                                strcat(filePath, downloaddir);
+                                strcat(filePath, pDirent->d_name);
+                                stat(filePath, &fileInfo); //read fileinfo/filestats into fileInfo struct
+                                printf("filesize %d\n", fileInfo.st_size);
+                                char fileNameAndSize[256] = {0}; //holds filename + filesize
+                                strcat(fileNameAndSize, pDirent->d_name);
+                                strcat(fileNameAndSize, " size: ");
+                                char fileSizeString[30];
+                                sprintf(fileSizeString, "%d", fileInfo.st_size); //convert fileSize into string
+                                strcat(fileNameAndSize, fileSizeString);
+                                strcpy(dirArray[i], fileNameAndSize); //put full fileinfo (name and size) into array
+                                i++;
+                            }
                         }
 
                         printf("Number of directory entries: %d\n", i);
@@ -444,8 +459,12 @@ int main(int argc, char **argv) {
             close(new_socket);
         } else {
             printf("Too many failed logins. Bye.\n");
+            close(create_socket);
+            close(new_socket);
+            break;
         }
-    }
-    close(create_socket);
+
+    } //end of while(1)
+
     return EXIT_SUCCESS;
 }
