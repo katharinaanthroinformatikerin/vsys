@@ -242,6 +242,7 @@ int main(int argc, char **argv) {
             do {
 
                 //receives command:
+                printf("Waiting for command.\n");
                 size = recv(new_socket, buffer, BUF - 1, 0);
                 if (size > 0) {
                     buffer[size] = '\0';
@@ -400,12 +401,9 @@ int main(int argc, char **argv) {
                             printf("receivt filesize vom client: %s\n", buffer);
                             //Wandelt Größe als String in Größe als int um
                             int filesize = atoi(buffer);
-
-                            strcpy(buffer, "Filesize erhalten, Datentransfer kann beginnen.\n");
-                            send(new_socket, buffer, BUF - 1, 0);
-
-
-                            if (filesize > 0) {
+                            if(filesize>-1) {
+                                strcpy(buffer, "Filesize erhalten, Datentransfer kann beginnen.\n");
+                                send(new_socket, buffer, BUF - 1, 0);
 
                                 int bytesGelesen = 0;
 
@@ -430,18 +428,17 @@ int main(int argc, char **argv) {
                                         break;
                                     }
                                 }
-
+                                fclose(file);
+                                printf("File closed.\n");
                                 printf("put done.\n");
-                            } else {
+                            }else {
                                 printf("Error receiving size\n");
+                                fclose(file);
+                                printf("File closed.\n");
                             }
-                            fclose(file);
-                            printf("File closed.\n");
-
                         } else {
                             printf("Error receiving name.\n");
                         }
-
                     } else if (strncmp(buffer, "QUIT", 4) == 0) {
                         //damit nicht nochmal unkown command hingeschrieben wird, while-Schleife (unten) beendet das Ganze
                     } else {

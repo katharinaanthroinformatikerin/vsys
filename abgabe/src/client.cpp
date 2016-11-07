@@ -114,6 +114,7 @@ int main(int argc, char **argv) {
         size = recv(csocket, buffer, BUF - 1, 0);
         if(size>0) {
             buffer[size] = '\0';
+            //printf("received loginmessage: %s\n", buffer);
         } else {
             printf("error reading from server");
             return -1;
