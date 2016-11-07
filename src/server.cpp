@@ -18,7 +18,6 @@
 #include <ldap.h>
 
 #define BUF 1024
-#define PORT 6543
 
 #define DIRARRSIZE 1000
 #define LDAP_HOST "ldap.technikum-wien.at"
@@ -36,13 +35,24 @@ int main(int argc, char **argv) {
     DIR *pDir;
     struct dirent *pDirent;
     char dirArray[DIRARRSIZE][256];
+    char *downloaddir;
+    int port = 0;
+
+    if (argc < 3) {
+        printf("Usage: %s Port Downloaddirectory\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    downloaddir = argv[2];
+    printf("Downloaddir set to %s\n", downloaddir);
+    port = atoi(argv[1]);
 
     create_socket = socket(AF_INET, SOCK_STREAM, 0);
 
     memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
+    address.sin_port = htons(port);
 
     if (bind(create_socket, (struct sockaddr *) &address, sizeof(address)) != 0) {
         perror("Bind error.");
@@ -57,7 +67,7 @@ int main(int argc, char **argv) {
     //while(pid != 0); wenn es kindprozess ist, is es null, er soll nicht in diese schleife
 
     while (1) {
-        printf("Waiting for connections...\n");
+        printf("Waiting for connections on port %d...\n", port);
         new_socket = accept(create_socket, (struct sockaddr *) &cliaddress, &addrlen);
         if (new_socket > 0) {
             printf("Client connected from %s:%d...\n", inet_ntoa(cliaddress.sin_addr), ntohs(cliaddress.sin_port));
@@ -231,7 +241,7 @@ int main(int argc, char **argv) {
 
                         //pDir = opendir(con->getDownloadDir().c_str());
                         //Punkt steht für aktuelles VZ
-                        pDir = opendir(".");
+                        pDir = opendir(downloaddir);
 
                         if (pDir == NULL) {
                             printf("pDir is NULL.\n");
@@ -264,8 +274,9 @@ int main(int argc, char **argv) {
 
                         char filedirectory[BUF] = {0};
 
-                        strcpy(filedirectory, buffer + 4);
-
+                        strcat(filedirectory, downloaddir);
+                        strcat(filedirectory, buffer + 4);
+                        printf("filedirectory für get: %s\n", filedirectory);
                         /*
                         char *partDirectory = (char *) malloc(strlen(filedirectory));
                         strcpy(partDirectory, filedirectory);
@@ -339,44 +350,16 @@ int main(int argc, char **argv) {
                         char sendCommand[BUF];
 
                         char filename[BUF] = {0};
-                        strcpy(filename, buffer + 4);
+                        strcat(filename, downloaddir);
+                        strcat(filename, buffer + 4);
 
 
                         strcpy(buffer, "ACK: PUT wurde gestartet\n");
                         send(new_socket, buffer, BUF - 1, 0);
                         printf("ACK: PUT wurde gestartet %s.\n", filename);
-                        /*if (strlen(sendCommand) > 4) {
-                            for (int i = 0; i < strlen(sendCommand)-4; i++) {
-                                filename[i] = sendCommand[i+4];
-                            }
-                            filename[strlen(sendCommand) - 5] = '\0';
-                        }*/
-                        /*
-                        // Das Downloadverzeichnis des aktuellen Users wird automatisch gesucht und festgelegt
-                        auto con = new config();
 
-                        //size = recv(new_socket, buffer, BUF - 1, 0);//receivt filenamen
-                        //buffer[size]='\0';
-                        strcpy(filename, sendCommand);
-
-
-                        printf("Ausgabe des filenamens %s\n", filename);
-                        //strlen(directory) + strlen (filename) + 1
-                        char filedirectory[BUF] = {0};
-                        strcat(filedirectory, con->getDownloadDir().c_str());
-                        strcat(filedirectory, "/");
-                        strcat(filedirectory, filename);
-                        */
-
-                        printf("nach Zusammensetzen dir und filename steht im filedirectory: %s\n",
-                               filename);//Debugging
 
                         if (strlen(filename) > 0) {
-                            //buffer[size] = '\0';
-                            //strtok(buffer, "\n");
-                            //printf("im buffer steht name: %s\n", buffer);
-                            //std::string oName(buffer);
-                            //std::string fname = oName + "_new";
 
                             FILE *file = fopen(filename, "wb");
                             if (file == NULL) {
@@ -385,11 +368,6 @@ int main(int argc, char **argv) {
 
                             strcpy(buffer, "Die Datei wurde am Server geöffnet.\n");
                             send(new_socket, buffer, BUF - 1, 0);
-
-
-                            // receiving the file size in bytes
-                            //size = recv(new_socket, buffer, BUF - 1, 0); // 8.R
-                            //printf("receivt filesize in bytes %d\n", buffer);
 
                             //Erhalt der filesize
                             size = recv(new_socket, buffer, BUF - 1, 0);
@@ -414,8 +392,7 @@ int main(int argc, char **argv) {
                                     bytesGelesen += size;
                                     printf("Bytes received: %d\n", size);
                                     if (size > 0) {
-                                        //buffer[size] = '\0';
-                                        //printf("bufferinhalt: %s\n", buffer);
+
                                         int bytesWrite = fwrite(buffer, sizeof(char), size, file);
 
                                         if (bytesWrite > 0) {
@@ -440,157 +417,6 @@ int main(int argc, char **argv) {
                             printf("Error receiving name.\n");
                         }
 
-                        /*
-                        char sendCommand[BUF];
-                        char filename[BUF] = {0};
-                        strcpy(filename, buffer + 4);
-
-                        printf("received PUT for file \"%s\"\n", filename);
-
-                        size = recv(new_socket, buffer, BUF - 1, 0);
-                        buffer[size] = '\0';
-
-                        if (strncmp(buffer, "ERR", 3) == 0) {
-                            printf("%s", buffer);
-                        } else {
-                            //Wenn Datei am client geöffnet:
-                            FILE *file = fopen(filename, "wb");
-                            if (file == NULL) {
-                                printf("Error opening file\n");
-                            } else {
-
-                                printf("File am Server geöffnet.\n");//debug
-
-                                //Erhalt der filesize
-                                size = recv(new_socket, buffer, BUF - 1, 0);
-                                buffer[size] = '\0';
-
-                                //Wandelt Größe als String in Größe als int um
-                                int filesize = atoi(buffer);
-
-                                printf("client says they be sending %d bytes.\n", filesize);
-
-                                //Client receivt blockweise und schreibt blockweise ins file
-                                if (filesize > 0) {
-
-                                    int bytesGelesen = 0;
-
-                                    strcpy(buffer, "ACK Server ready to receive.\n");
-                                    send(new_socket, buffer, BUF - 1, 0);
-
-                                    while (bytesGelesen < filesize) {
-
-                                        // receiving the actual file contents
-                                        size = recv(new_socket, buffer, BUF - 1, 0);
-
-                                        bytesGelesen += size;
-
-                                        if (size > 0) {
-                                            buffer[size] = '\0';
-
-                                            int bytesWrite = fwrite(buffer, sizeof(char), size, file);
-
-                                            if (bytesWrite > 0) {
-                                                //printf("%d bytes geschrieben\n", bytesWrite);
-
-                                            } else {
-                                                printf("Konnte nicht schreiben.\n");
-                                            }
-                                        } else {
-                                            printf("error receiving\n");
-                                            break;
-                                        }
-
-                                    }
-
-                                    printf("\nput done.\n");
-                                }
-                                fclose(file);
-                                printf("File closed.\n");
-                            }
-
-
-                        }
-                        */
-
-                        /*hier beginnt put alt
-
-
-                        char sendCommand[BUF];
-                        char filename[BUF] = {0};
-                        strcpy(filename, buffer + 4);
-
-                        printf("received PUT for file \"%s\"\n", filename);
-
-                        if (strlen(filename) > 0) {
-                            printf("now waiting for ACK ...\n");
-                            // Receivt ACK oder ERR, je nachdem, ob Datei am Client geöffnet werden konnte oder nicht:
-                            size = recv(new_socket, buffer, BUF - 1, 0);
-                            buffer[size] = '\0';
-
-                            printf("%d bytes received: Status from client: \"%s\"\n", size, buffer);
-
-                            if (strncmp(buffer, "ERR", 3) == 0) {
-                                printf("An error occurred: %s\n", buffer);
-
-                            } else {
-                                printf("Didn't receive ERR so it must be ACK.\n");
-
-                                // Wenn Datei am client geöffnet, datei zum schreiben am server oeffnen
-                                FILE *file = fopen(filename, "wb");
-                                if (file == NULL) {
-                                    printf("Error opening file\n");
-                                }
-
-                                //Erhalt der filesize
-                                size = recv(new_socket, buffer, BUF - 1, 0);
-                                buffer[size] = '\0';
-
-                                //Wandelt Größe als String in Größe als int um
-                                int filesize = atoi(buffer);
-
-                                printf("client says they be sending %d bytes.\n", filesize);
-
-                                if (filesize > 0) {
-                                    int bytesGelesen = 0;
-
-                                    while (bytesGelesen < filesize) {
-                                        printf("now waiting for data ... %d < %d\n", bytesGelesen, filesize);
-                                        // receiving the actual file contents
-                                        size = recv(new_socket, buffer, BUF, 0);
-                                        bytesGelesen += size;
-                                        printf("Bytes received: %d\n", size);
-
-                                        if (size > 0) {
-
-                                            int bytesWrite = fwrite(buffer, sizeof(char), size, file);
-
-                                            if (bytesWrite > 0) {
-                                                printf("%d bytes written.\n", bytesWrite);
-                                            } else {
-                                                printf("Couldn't write.\n");
-                                            }
-                                        } else {
-                                            printf("Error receiving.\n");
-                                            break;
-                                        }
-                                    }
-
-                                    printf("Put done.\n");
-                                } else {
-                                    printf("Error receiving size.\n");
-                                }
-                                fclose(file);
-                                printf("File closed.\n");
-                            }
-
-                        } else {
-                            printf("Error receiving name.\n");
-                        }
-
-
-                    hier endet put
-                    */
                     } else if (strncmp(buffer, "QUIT", 4) == 0) {
                         //damit nicht nochmal unkown command hingeschrieben wird, while-Schleife (unten) beendet das Ganze
                     } else {

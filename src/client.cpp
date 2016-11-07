@@ -16,7 +16,7 @@
 #include <string>
 
 #define BUF 1024
-#define PORT 6543
+
 
 int main(int argc, char **argv) {
     int csocket;
@@ -24,8 +24,8 @@ int main(int argc, char **argv) {
     struct sockaddr_in address;
     int size;
 
-    if (argc < 2) {
-        printf("Usage: %s ServerAdresse\n", argv[0]);
+    if (argc < 3) {
+        printf("Usage: %s ServerAdresse Port\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 
     memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET;
-    address.sin_port = htons(PORT);
+    address.sin_port = htons(atoi (argv[2]));//Port wird übergeben
     inet_aton(argv[1], &address.sin_addr);
 
     if (connect(csocket, (struct sockaddr *) &address, sizeof(address)) == 0) {
@@ -125,18 +125,6 @@ int main(int argc, char **argv) {
                 char filename[BUF] = {0};
                 strcpy(filename, sendCommand + 4);
 
-                /*
-                char *partDirectory = (char *) malloc(strlen(filename));
-                strcpy(partDirectory, filename);
-                char *pSlash = strrchr(partDirectory, '/');
-
-                if (pSlash != NULL) {
-                    *pSlash = '\0';
-                    char *partFilename = strdup(pSlash + 1);
-                    strcpy(filename, partFilename);
-                }
-                 */
-
                 //Receivt ACK oder ERR, je nachdem, ob Datei am Server geöffnet werden konnte oder nicht:
                 size = recv(csocket, buffer, BUF - 1, 0);
                 buffer[size] = '\0';
@@ -208,51 +196,6 @@ int main(int argc, char **argv) {
                 printf("ACK vom Server, dass PUT gestartet: %s", buffer);//receiven des ACKs vom Server
 
                 strcpy(filedirectory, sendCommand+4);
-
-                //printf("Bitte geben Sie den Verzeichnispfad und Dateinamen der zu übertragenden Datei an:\n");
-                //fgets(buffer, BUF, stdin);
-                //Um das \n aus der stdin Eingabe rauszukriegen, überschreibe ich es mit \0.
-                //strtok(buffer, "\n");
-                //strcpy(filedirectory, buffer);
-
-                //markiert letzten /, um filename zu extrahieren
-                //wenn zum put der gesamte dateipfad zum file eingegeben wird, muss ich dateinamen extrahieren:
-                /*for (int i = strlen(buffer) - 1; i >= 0; i--) {
-                    if (buffer[i] == '/') {
-                        int l = 0;
-                        for (int k = i + 1; k < strlen(buffer); k++) {
-                            extractedFilename[l] = buffer[k];
-                            l++;
-                        }
-                        extractedFilename[l] = '\0';
-                        break;
-                    }
-                }
-                strcpy(buffer, extractedFilename);
-                send(csocket, buffer, strlen(buffer), 0);
-                printf("Der extracted Filename auf Clientseite nach dem Schicken: %s\n", extractedFilename);
-                */
-
-                //printf("Geben Sie den Pfad und dateinamen ein: \n");
-                //fgets(buffer, BUF, stdin);
-                //strtok(buffer, "\n");
-                //std::string fname(buffer);
-                //sendet Pfad der zu übermittelnden Datei
-                //
-                //send(csocket, buffer, strlen(buffer), 0); // 5. S - Dateipfad senden
-
-                //printf("Ausgabe Bufferinhalt der pfad sein sollt: %s\n", buffer);
-                //sendet jetzt nur, damits mitn receiven übereinstimmt.
-
-
-                /*
-                char directory[] = "/home/katharina/";
-                printf("Ausgabe des filenamens %s", filename);
-                //strlen(directory) + strlen (filename) + 1
-                char filedirectory[BUF] = {0};
-                strcat(filedirectory, directory);
-                strcat(filedirectory, filename);
-                */
 
 
                 //receive the server's ready
