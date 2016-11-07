@@ -53,6 +53,9 @@ int main(int argc, char **argv) {
 
     addrlen = sizeof(struct sockaddr_in);
 
+    //pid_t pid;
+    //while(pid != 0)
+
     while (1) {
         printf("Waiting for connections...\n");
         new_socket = accept(create_socket, (struct sockaddr *) &cliaddress, &addrlen);
@@ -60,6 +63,8 @@ int main(int argc, char **argv) {
             printf("Client connected from %s:%d...\n", inet_ntoa(cliaddress.sin_addr), ntohs(cliaddress.sin_port));
             strcpy(buffer, "Welcome to myserver. ");
             send(new_socket, buffer, strlen(buffer), 0);
+
+            //fork() und hier die while-Schleife schließen }. der kindprozess geht dann nicht in die while-Schleife;
         }
 
         int loginOk = 0;
@@ -185,6 +190,7 @@ int main(int argc, char **argv) {
                         free(attribs[0]);
                         free(attribs[1]);
                         printf("LDAP search finished\n");
+                        //ev. ldap_unbind(ld) statt weiter oben.
                     }
 
 
