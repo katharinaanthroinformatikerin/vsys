@@ -18,10 +18,4 @@ set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS
 
 # Ende LDAP
 
-set(SERVER_SOURCES src/server.cpp)
-
-set(CLIENT_SOURCES src/client.cpp)
-
-add_executable(server ${SERVER_SOURCES})
-
-add_executable(client ${CLIENT_SOURCES})
+add_subdirectory(src)
