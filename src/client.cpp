@@ -203,6 +203,118 @@ int main(int argc, char **argv) {
 
                 char filedirectory[BUF] = {0};
 
+                size = recv(csocket, buffer, BUF - 1, 0);
+                buffer[size] = '\0';
+                printf("ACK vom Server, dass PUT gestartet: %s", buffer);//receiven des ACKs vom Server
+
+                strcpy(filedirectory, sendCommand+4);
+
+                //printf("Bitte geben Sie den Verzeichnispfad und Dateinamen der zu übertragenden Datei an:\n");
+                //fgets(buffer, BUF, stdin);
+                //Um das \n aus der stdin Eingabe rauszukriegen, überschreibe ich es mit \0.
+                //strtok(buffer, "\n");
+                //strcpy(filedirectory, buffer);
+
+                //markiert letzten /, um filename zu extrahieren
+                //wenn zum put der gesamte dateipfad zum file eingegeben wird, muss ich dateinamen extrahieren:
+                /*for (int i = strlen(buffer) - 1; i >= 0; i--) {
+                    if (buffer[i] == '/') {
+                        int l = 0;
+                        for (int k = i + 1; k < strlen(buffer); k++) {
+                            extractedFilename[l] = buffer[k];
+                            l++;
+                        }
+                        extractedFilename[l] = '\0';
+                        break;
+                    }
+                }
+                strcpy(buffer, extractedFilename);
+                send(csocket, buffer, strlen(buffer), 0);
+                printf("Der extracted Filename auf Clientseite nach dem Schicken: %s\n", extractedFilename);
+                */
+
+                //printf("Geben Sie den Pfad und dateinamen ein: \n");
+                //fgets(buffer, BUF, stdin);
+                //strtok(buffer, "\n");
+                //std::string fname(buffer);
+                //sendet Pfad der zu übermittelnden Datei
+                //
+                //send(csocket, buffer, strlen(buffer), 0); // 5. S - Dateipfad senden
+
+                //printf("Ausgabe Bufferinhalt der pfad sein sollt: %s\n", buffer);
+                //sendet jetzt nur, damits mitn receiven übereinstimmt.
+
+
+                /*
+                char directory[] = "/home/katharina/";
+                printf("Ausgabe des filenamens %s", filename);
+                //strlen(directory) + strlen (filename) + 1
+                char filedirectory[BUF] = {0};
+                strcat(filedirectory, directory);
+                strcat(filedirectory, filename);
+                */
+
+
+                //receive the server's ready
+                size = recv(csocket, buffer, BUF - 1, 0);
+                printf("Receivt datei am server geöffnet: %s\n", buffer);
+
+
+                printf("Ausgabe dateipfad vor öffnen: %s\n", filedirectory);
+                FILE *file = fopen(filedirectory, "rb");
+                if (file == NULL) {
+                    printf("Error opening file.\n");
+                } else {
+                    printf("file opened.\n");
+
+                    //fseek(file, 0L, SEEK_END);
+                    struct stat finfo;
+                    stat(filedirectory, &finfo);
+                    int fileSize = finfo.st_size;
+
+                    printf("filesize %d\n", fileSize);
+
+                    sprintf(buffer, "%d", fileSize);
+                    //Dateigröße senden
+                    printf("Dateigröße im buffer vor dem senden zum Server: %s\n", buffer);
+                    send(csocket, buffer, strlen(buffer), 0);
+
+                    //receiven Dateigroesse erhalten
+                    size = recv(csocket, buffer, BUF - 1, 0);
+                    printf("receiven des ok vom server, dass er Dateigrösse erhalten hat: %s\n", buffer);
+
+                    //rewind(file);
+
+                    while (1) {
+                        size_t bytesRead = fread(buffer, sizeof(char), BUF - 1, file);
+
+                        if (bytesRead > 0) {
+
+                            printf("%d bytes gelesen\n", bytesRead);
+                            int bytesGesendet = 0;
+
+                            while (bytesGesendet < bytesRead) {
+
+                                bytesGesendet += send(csocket, buffer, bytesRead, 0);
+
+                                printf("bytesGesendet... %d\n", bytesGesendet);
+                            }
+
+
+                        } else {
+                            printf("Konnte nicht mehr lesen.\n");
+                            break;
+                        }
+
+                    }
+                    printf("Schließe file. \n");
+                    memset(&buffer, 0, sizeof(buffer));
+                    fclose(file);
+                }
+
+                /*
+                char filedirectory[BUF] = {0};
+
                 strcpy(filedirectory, sendCommand + 4);
 
                 printf("filedirectory: %s\n", filedirectory);
@@ -265,7 +377,7 @@ int main(int argc, char **argv) {
                     fclose(file);
                     printf("File closed.\n");
                 }
-
+                */
                 /* anfang put alt
                 char filedirectory[BUF] = {0};
 
