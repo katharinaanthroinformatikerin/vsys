@@ -78,6 +78,7 @@ int main(int argc, char **argv) {
                 close(new_socket);
                 exit(EXIT_FAILURE);
             } else if(pid == 0) {//childprocess == 0, just give a debug message
+                close(create_socket);
                 printf("childprocess, handle connections\n");
             } else {
                 printf("parentprocess continued\n"); //parentprocess pid!=0 close new_socket, it is owned by childprocess
