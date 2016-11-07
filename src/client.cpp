@@ -17,9 +17,8 @@
 
 #define BUF 1024
 
-// implementation for getch(), which was not available
-// for masking the input of password
-// reads one char after another and there is no echo
+//Taken from open source https://gist.github.com/sinannar/2175646
+//to implement missing hidden input from terminal window.
 int mygetch( )
 {
     struct termios oldt, newt;

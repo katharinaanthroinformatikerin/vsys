@@ -70,8 +70,8 @@
       <file leaf-file-name="client.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/client.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="285">
-              <caret line="106" column="43" selection-start-line="106" selection-start-column="43" selection-end-line="106" selection-end-column="43" />
+            <state relative-caret-position="75">
+              <caret line="20" column="57" selection-start-line="20" selection-start-column="57" selection-end-line="20" selection-end-column="57" />
               <folding>
                 <element signature="e#55#77#0" expanded="true" />
               </folding>
@@ -381,12 +381,12 @@
       <workItem from="1478530161060" duration="777000" />
       <workItem from="1478531229926" duration="2734000" />
       <workItem from="1478540832488" duration="217000" />
-      <workItem from="1478541389563" duration="4130000" />
+      <workItem from="1478541389563" duration="4499000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="44480000" />
+    <option name="totallyTimeSpent" value="44849000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="65" y="24" width="1295" height="639" extended-state="6" />
@@ -544,8 +544,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/client.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="106" column="43" selection-start-line="106" selection-start-column="43" selection-end-line="106" selection-end-column="43" />
+        <state relative-caret-position="75">
+          <caret line="20" column="57" selection-start-line="20" selection-start-column="57" selection-end-line="20" selection-end-column="57" />
           <folding>
             <element signature="e#55#77#0" expanded="true" />
           </folding>
