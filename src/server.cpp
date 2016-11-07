@@ -63,7 +63,6 @@ int main(int argc, char **argv) {
 
     addrlen = sizeof(struct sockaddr_in);
 
-    //pid_t pid;
     //while(pid != 0); wenn es kindprozess ist, is es null, er soll nicht in diese schleife
 
     while (1) {
@@ -73,9 +72,19 @@ int main(int argc, char **argv) {
             printf("Client connected from %s:%d...\n", inet_ntoa(cliaddress.sin_addr), ntohs(cliaddress.sin_port));
             strcpy(buffer, "Welcome to myserver. ");
             send(new_socket, buffer, strlen(buffer), 0);
-
-            //pid =fork() und hier die while-Schleife schließen }. der kindprozess geht dann nicht in die while-Schleife;
-        } //hier gehört noch eine klammer zu (die von unten rauf, damit die funktionen ausserhalb der connectionschleife sind.)
+            pid_t pid = fork();
+            if(pid == -1) {//elternprozess
+                printf("error forking, closing new_socket!\n");
+                close(new_socket);
+                exit(EXIT_FAILURE);
+            } else if(pid == 0) {//childprocess == 0, just give a debug message
+                printf("childprocess, handle connections\n");
+            } else {
+                printf("parentprocess continued\n"); //parentprocess pid!=0 close new_socket, it is owned by childprocess
+                close(new_socket);
+                continue;//don't do any of the following code, jump to start of while(1)
+            }
+        }
 
         int loginOk = 0;
         int loginTries = 0;

@@ -12,10 +12,26 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-
+#include <termios.h>
 #include <string>
 
 #define BUF 1024
+
+//Taken from open source https://gist.github.com/sinannar/2175646
+//to implement missing hidden input from terminal window.
+int mygetch( )
+{
+    struct termios oldt, newt;
+    int ch;
+
+    tcgetattr( STDIN_FILENO, &oldt );
+    newt = oldt;
+    newt.c_lflag &= ~( ICANON | ECHO );
+    tcsetattr( STDIN_FILENO, TCSANOW, &newt );
+    ch = getchar();
+    tcsetattr( STDIN_FILENO, TCSANOW, &oldt );
+    return ch;
+}
 
 
 int main(int argc, char **argv) {
@@ -66,9 +82,23 @@ int main(int argc, char **argv) {
         strtok(inputUsername, "\n");
 
         printf("\nPassword: ");
-        fgets(inputPassword, BUF, stdin);
+        //fgets(inputPassword, BUF, stdin);
+        //strtok(inputPassword, "\n");
+        char c;
+        int p=0;
+        // masking input for password
+        do
+        {
+            c = mygetch();
+            if(c != '\n')
+            {
+                inputPassword[p]=c;
+                p++;
+                putchar('*');
+            }
+        } while(c != '\n');
         strtok(inputPassword, "\n");
-
+        printf("\n");
         char loginString[BUF] = {0};
         strcat(loginString, "LOGIN ");
         strcat(loginString, inputUsername);
@@ -387,3 +417,5 @@ int main(int argc, char **argv) {
     close(csocket);
     return EXIT_SUCCESS;
 }
+
+
